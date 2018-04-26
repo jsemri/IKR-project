@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
 from glob import glob
-import scipy.io
+import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-
-from sklearn.utils import shuffle
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import SGDClassifier # not used, higher error
-from keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import accuracy_score
 from scipy import misc
-from sklearn.externals import joblib
+
+from keras.preprocessing.image import ImageDataGenerator
+from sklearn.utils import shuffle
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# models
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import SGDClassifier
 
 negative_train_path = 'data/non_target_train/*.png'
 positive_train_path = 'data/target_train/*.png'
@@ -43,68 +47,59 @@ def get_data():
 
     return x_train, y_train, x_test, y_test
 
-def display_errors(x_test,y_test,preds):
-    for idx,im in enumerate(x_test):
-        if y_test[idx] != preds[idx]:
-            im = im.reshape(80,80,3)
-            plt.imshow(im)
-            print(preds[idx])
-            plt.show()
+def cross_val(display=False):
+    #'''
+    X1, y1, X2, y2 = get_data()
+    X = np.concatenate((X1, X2), axis=0)
+    y = np.concatenate((y1, y2), axis=0)
 
-def train_model(model,x_train,y_train,normal=False,epochs=5):
-    datagen = ImageDataGenerator(rotation_range=20,width_shift_range=0.1,
+    dg = ImageDataGenerator(rotation_range=20,width_shift_range=0.1,
         height_shift_range=0.1,shear_range=0.2, horizontal_flip=True)
-    assert len(x_train.shape) == 4
-    if not normal:
-        for e in range(epochs):
-            i = 0
-            for x_batch, y_batch in datagen.flow(x_train,y_train,batch_size=128):
-                x_batch = x_batch.reshape(x_batch.shape[0],-1)
-                model.fit(x_batch,y_batch)
-                i += 1
-                if i > 10: break
-    else:
-        x_train = x_train.reshape(x_train.shape[0],-1)
-        model.fit(x_train,y_train)
+    train_x, train_y = [], []
+    i = 0
+    for x_batch, y_batch in dg.flow(X,y,batch_size=1000):
+        train_x.append(x_batch)
+        train_y.append(y_batch)
+        i += 1
+        if i > 10: break
 
-def validate_model(model,x_test,y_test,normal=False,epochs=5):
-    datagen = ImageDataGenerator(rotation_range=20,width_shift_range=0.1,
-        height_shift_range=0.1,shear_range=0.2, horizontal_flip=True)
-
-    assert len(x_test.shape) == 4
-    if normal:
-        x_test = x_test.reshape(x_test.shape[0],-1)
-        preds = model.predict(x_test)
-        acc = accuracy_score(y_test, preds)
-        print('accuracy: ', acc)
-        return acc
-    else:
-        pr = []
-        positive_in = []
-        for e in range(epochs):
-            i = 0
-            for x_batch, y_batch in datagen.flow(x_test,y_test,batch_size=128):
-                x_batch = x_batch.reshape(x_batch.shape[0],-1)
-                preds = model.predict(x_batch)
-                pr.append(accuracy_score(y_batch, preds))
-                positive_in.append(np.mean(y_batch))
-                i += 1
-                if i > 10: break
-
-        print('average: ',np.mean(pr))
-        print('variance: ', np.std(pr))
-        print('negative odds: ', 1 - np.mean(positive_in))
-        return np.mean(pr)
-
-def main():
-    x_train, y_train, x_test, y_test = get_data()
+    # concatenate arrays
+    y = np.hstack(train_y)
+    X = np.vstack(train_x)
+    X = X.reshape(X.shape[0],-1)
+    
     model = RandomForestClassifier()
     #model = SGDClassifier(loss='log',penalty='l2')
-    train_model(model,x_train,y_train,0)
-    acc = validate_model(model,x_test,y_test,0)
-    if acc > 0.99:
-        print('Saving model')
-        joblib.dump(model, 'img_cls_model')
+    res = cross_val_score(model, X, y, cv=KFold(n_splits=5,random_state=7))
+    print('Folds: ', res)
+    print('mean: ', res.mean(), 'std: ', res.std())
+    #'''
+    # display the result of cross-validation
+    #res = np.array([.957 , .946 , 0.967 , 0.963 , 0.9713])
+    res *= 100
+    if display:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.bar(['fold ' + str(i+1) for i in range(len(res))], res-85, bottom=85)
+        ax.axhline(y=res.mean(), color='red', linestyle='--')
+        ax.set_title('cross-validation summary')
+        ax.set_ylabel('accuracy')
+        ax.set_yticks(np.arange(85,100,1))
+        plt.show()
+
+    # split to avoid over-fitting or perhaps train on the whole dataset
+    x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
+        random_state=78)
+    model.fit(x_train,y_train)
+    print(accuracy_score(model.predict(x_test), y_test))
+
+    # save the model
+    with open('model_experiment','wb') as f:
+        pickle.dump(model, f)
+
+
+def main():
+    cross_val(display=True)
 
 if __name__ == "__main__":
     main()
