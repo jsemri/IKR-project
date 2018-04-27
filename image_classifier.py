@@ -4,6 +4,7 @@ from glob import glob
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 from scipy import misc
 
 from keras.preprocessing.image import ImageDataGenerator
@@ -47,7 +48,7 @@ def get_data():
 
     return x_train, y_train, x_test, y_test
 
-def cross_val(display=False):
+def cross_val(model,display=False):
     #'''
     X1, y1, X2, y2 = get_data()
     X = np.concatenate((X1, X2), axis=0)
@@ -67,9 +68,7 @@ def cross_val(display=False):
     y = np.hstack(train_y)
     X = np.vstack(train_x)
     X = X.reshape(X.shape[0],-1)
-    
-    model = RandomForestClassifier()
-    #model = SGDClassifier(loss='log',penalty='l2')
+
     res = cross_val_score(model, X, y, cv=KFold(n_splits=5,random_state=7))
     print('Folds: ', res)
     print('mean: ', res.mean(), 'std: ', res.std())
@@ -78,13 +77,14 @@ def cross_val(display=False):
     #res = np.array([.957 , .946 , 0.967 , 0.963 , 0.9713])
     res *= 100
     if display:
+        base = min((85,min(res)-1))
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        ax.bar(['fold ' + str(i+1) for i in range(len(res))], res-85, bottom=85)
+        ax.bar(['fold ' + str(i+1) for i in range(len(res))], res-base, bottom=85)
         ax.axhline(y=res.mean(), color='red', linestyle='--')
         ax.set_title('cross-validation summary')
         ax.set_ylabel('accuracy')
-        ax.set_yticks(np.arange(85,100,1))
+        ax.set_yticks(np.arange(base,100,1))
         plt.show()
 
     # split to avoid over-fitting or perhaps train on the whole dataset
@@ -99,7 +99,11 @@ def cross_val(display=False):
 
 
 def main():
-    cross_val(display=True)
+    model = RandomForestClassifier()
+    if len(sys.argv) > 1:
+        print('Using SGD classifier.')
+        model = SGDClassifier(loss='log',penalty='l2')
+    cross_val(model,display=True)
 
 if __name__ == "__main__":
     main()
