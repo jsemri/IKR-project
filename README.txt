@@ -56,7 +56,7 @@ Script trains a GMM classifier on data and saves it to GMM_model.pkl file.
 ./SRC/img_prob.py [file_name]
 
     If file_name is set, read a model from a given file
-    If there is no argument, read model from file model_experiment
+    If there is no argument, read a model from the file named model_experiment
 
 Script classifies images from eval directory and prints results on stdout
 
