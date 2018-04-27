@@ -17,6 +17,9 @@ def score(model, path):
         print(re.sub('\..*','', os.path.basename(fname)), preds[1],
             int(preds[0] < preds[1]))
 def main():
+    if not os.path.isdir('eval'):
+        raise RuntimeError('directory not found: eval')
+
     fname = 'model_experiment'
     if len(sys.argv) > 1:
         fname = sys.argv[1]

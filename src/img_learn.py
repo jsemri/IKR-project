@@ -4,7 +4,7 @@ from glob import glob
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
+import sys, os
 from scipy import misc
 
 from keras.preprocessing.image import ImageDataGenerator
@@ -18,10 +18,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 
-negative_train_path = '../data/non_target_train/*.png'
-positive_train_path = '../data/target_train/*.png'
-negative_test_path = '../data/non_target_dev/*.png'
-positive_test_path = '../data/target_dev/*.png'
+negative_train_path = 'data/non_target_train/*.png'
+positive_train_path = 'data/target_train/*.png'
+negative_test_path = 'data/non_target_dev/*.png'
+positive_test_path = 'data/target_dev/*.png'
 
 def read_img(path):
     return np.array([np.array(misc.imread(f)) for f in glob(path)])
@@ -83,7 +83,7 @@ def cross_val(model,display=False):
         ax.set_ylabel('accuracy')
         ax.set_yticks(np.arange(base,100,1))
         plt.show()
-        
+
     # split to avoid over-fitting or perhaps train on the whole dataset
     x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
         random_state=78)
@@ -94,8 +94,16 @@ def cross_val(model,display=False):
     with open('model_experiment','wb') as f:
         pickle.dump(model, f)
 
+def check_dir(folder):
+    if not os.path.isdir(folder):
+        raise RuntimeError('directory not found: ' + folder)
 
 def main():
+    check_dir(os.path.dirname(negative_test_path))
+    check_dir(os.path.dirname(negative_train_path))
+    check_dir(os.path.dirname(positive_test_path))
+    check_dir(os.path.dirname(positive_train_path))
+
     model = RandomForestClassifier()
     # any argument changes the model type to SGD
     if len(sys.argv) > 1:
