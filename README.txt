@@ -18,10 +18,10 @@ $ pip3 install -r /path/to/requirements.txt
 
 2.1 Expected directory structure
 
-Put all train directories into data directory 
-and all evaluation data into eval directory.
+Put all train directories into the data directory
+and all evaluation data into the eval directory.
 
-eval and data directory should be in the same directory 
+eval and data directory should be in the same directory
 as python scripts (SRC).
 
 -- SRC
@@ -36,32 +36,32 @@ as python scripts (SRC).
 
 2.2.1 Images
 
-./img_learn.py [SGD]
+./SRC/img_learn.py [SGD]
 
-    If SGD argument is set, model will be SGDClassifier.
-    If there is no argument, model will be RandomForestClassifier.
+    Script trains Random Forest ensemble model on the dataset in data directory.
+    If any argument is present, SGD classifier is set as a model.
 
-Script will train given classifier on data and trained model save to model_experiment file.
+Script trains a given classifier on data and saves the model to model_experiment file.
 
 2.2.2 Audio
 
-./audio_EM.py
+./SRC/audio_EM.py
 
-Script will train GMM classifier on data and trained model save to GMM_model.pkl
+Script trains a GMM classifier on data and saves it to GMM_model.pkl file.
 
 2.3 Evaluate models
 
 2.3.1 Images
 
-./img_prob.py [file_name]
-    
-    If file_name is set, reads model from given file
-    If there is no argument, reads model from file model_experiment
+./SRC/img_prob.py [file_name]
 
-Script will classify images from eval directory and prints results on stdout
+    If file_name is set, read a model from a given file
+    If there is no argument, read model from file model_experiment
+
+Script classifies images from eval directory and prints results on stdout
 
 2.3.2 Audio
 
-./audio_GMM_eval.py
+./SRC/audio_GMM_eval.py
 
-Script will classify audio from eval directory and prints results on stdout 
+Script classifies audio from eval directory and prints results on stdout
