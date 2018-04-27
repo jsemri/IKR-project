@@ -6,6 +6,7 @@ import scipy.linalg
 import numpy as np
 from numpy.random import randint
 import os
+import pickle
 
 negative_train_path = 'data/non_target_train'
 positive_train_path = 'data/target_train'
@@ -61,7 +62,6 @@ def main():
     posterior_m = np.exp(ll_m)*P_m /(np.exp(ll_m)*P_m + np.exp(ll_f)*P_f);
     plt.figure(); plt.plot(posterior_m, 'b'); plt.plot(1-posterior_m, 'r');
     plt.figure(); plt.plot(ll_m, 'b');        plt.plot(ll_f, 'r');
-    print ((sum(ll_m) + np.log(P_m)) - (sum(ll_f) + np.log(P_f)))
 
 
     # Again gaussian models with full covariance matrices. Now testing a female utterance
@@ -72,7 +72,6 @@ def main():
     posterior_m = np.exp(ll_m)*P_m /(np.exp(ll_m)*P_m + np.exp(ll_f)*P_f);
     plt.figure(); plt.plot(posterior_m, 'b'); plt.plot(1-posterior_m, 'r');
     plt.figure(); plt.plot(ll_m, 'b');        plt.plot(ll_f, 'r');
-    print ((sum(ll_m) + np.log(P_m)) - (sum(ll_f) + np.log(P_f)))
 
     score=[]
     mean_m, cov_m = train_gauss(train_m)
@@ -81,7 +80,6 @@ def main():
         ll_m = logpdf_gauss(tst, mean_m, cov_m)
         ll_f = logpdf_gauss(tst, mean_f, cov_f)
         score.append((sum(ll_m) + np.log(P_m)) - (sum(ll_f) + np.log(P_f)))
-    print(score)
 
     # Run recognition with 1-dimensional LDA projected data
     score=[]
@@ -91,7 +89,6 @@ def main():
         ll_m = logpdf_gauss(tst.dot(e), mean_m, np.atleast_2d(cov_m))
         ll_f = logpdf_gauss(tst.dot(e), mean_f, np.atleast_2d(cov_f))
         score.append((sum(ll_m) + np.log(P_m)) - (sum(ll_f) + np.log(P_f)))
-    print(score)
 
     M_m = 5
 
@@ -107,12 +104,10 @@ def main():
     for jj in range(100):
       [Ws_m, MUs_m, COVs_m, TTL_m] = train_gmm(train_m, Ws_m, MUs_m, COVs_m);
       [Ws_f, MUs_f, COVs_f, TTL_f] = train_gmm(train_f, Ws_f, MUs_f, COVs_f);
-      print('Iteration:', jj, ' Total log-likelihood:', TTL_m, 'for target;', TTL_f, 'for non-target')
 
     score=[]
     testok = 0
     testnok = 0
-    print("target data")
     for tst in test_m:
         ll_m = logpdf_gmm(tst, Ws_m, MUs_m, COVs_m)
         ll_f = logpdf_gmm(tst, Ws_f, MUs_f, COVs_f)
@@ -122,13 +117,11 @@ def main():
             testok += 1
         else:
             testnok += 1
-    print(score)
     print("target is " + str(testok/(testok+testnok)))
 
     score=[]
     testok = 0
     testnok = 0
-    print("non target data")
     for tst in test_f:
         ll_m = logpdf_gmm(tst, Ws_m, MUs_m, COVs_m)
         ll_f = logpdf_gmm(tst, Ws_f, MUs_f, COVs_f)
@@ -138,7 +131,9 @@ def main():
             testok += 1
         else:
             testnok += 1
-    print(score)
     print("non target is " + str(testok/(testok+testnok)))
+    print('Saved as "GMM_model.pkl"')
+    with open('GMM_model.pkl', 'wb') as f:
+        pickle.dump([Ws_m, MUs_m, COVs_m, Ws_f, MUs_f, COVs_f], f)
 
 main()

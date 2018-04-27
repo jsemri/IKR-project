@@ -91,7 +91,8 @@ def cross_val(model,display=False):
     print(accuracy_score(model.predict(x_test), y_test))
 
     # save the model
-    with open('model_experiment','wb') as f:
+    print('Saved as "img_cls.pkl"')
+    with open('img_cls.pkl','wb') as f:
         pickle.dump(model, f)
 
 def check_dir(folder):

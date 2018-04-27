@@ -4,7 +4,7 @@ from ikrlib import wav16khz2mfcc, logpdf_gauss, train_gauss, train_gmm, logpdf_g
 import scipy.linalg
 import numpy as np
 from numpy.random import randint
-import os
+import os, sys
 import pickle
 
 def check_dir(folder):
@@ -16,11 +16,12 @@ def main():
     test  = wav16khz2mfcc('eval')
     P_t = 0.5
     P_nt = 1 - P_t
-
+    fname = 'GMM_model.pkl'
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
 
     #choose one model
-    with open('audio_GMM_model1.pkl', 'rb') as f:
-    #with open('audio_GMM_model2.pkl', 'rb') as f:
+    with open(fname, 'rb') as f:
         Ws_t, MUs_t, COVs_t, Ws_nt, MUs_nt, COVs_nt = pickle.load(f)
 
 
