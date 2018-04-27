@@ -20,7 +20,7 @@ def main():
     if not os.path.isdir('eval'):
         raise RuntimeError('directory not found: eval')
 
-    fname = 'model_experiment'
+    fname = 'img_cls.pkl'
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     with open(fname,'rb') as f:
