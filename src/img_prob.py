@@ -9,6 +9,7 @@ import pickle
 
 def score(model, path):
     fnames = sorted(glob(path))
+    assert len(fnames) > 0
     for fname in fnames:
         img = np.array(misc.imread(fname)).flatten()
         preds = model.predict_proba([img])
@@ -22,6 +23,6 @@ def main():
     with open(fname,'rb') as f:
         model = pickle.load(f)
     # print: filename soft-decision hard-decision
-    score(model, '../eval/*.png')
+    score(model, 'eval/*.png')
 
 main()
