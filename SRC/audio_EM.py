@@ -90,13 +90,13 @@ def main():
         ll_f = logpdf_gauss(tst.dot(e), mean_f, np.atleast_2d(cov_f))
         score.append((sum(ll_m) + np.log(P_m)) - (sum(ll_f) + np.log(P_f)))
 
-    M_m = 5
+    M_m = 12
 
     MUs_m  = train_m[randint(1, len(train_m), M_m)]
     COVs_m = [np.var(train_m, axis=0)] * M_m
     Ws_m   = np.ones(M_m) / M_m;
 
-    M_f = 5
+    M_f = 7
     MUs_f  = train_f[randint(1, len(train_f), M_f)]
     COVs_f = [np.var(train_f, axis=0)] * M_f
     Ws_f   = np.ones(M_f) / M_f;
